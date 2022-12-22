@@ -1,9 +1,9 @@
 package ru.jamsys.component;
 
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import ru.jamsys.AbstractCoreComponent;
-import ru.jamsys.App;
 import ru.jamsys.broker.BrokerQueue;
 import ru.jamsys.broker.BrokerStatistic;
 import ru.jamsys.scheduler.SchedulerGlobal;
@@ -16,11 +16,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Broker extends AbstractCoreComponent {
 
     private final Map<Class<?>, BrokerQueue<?>> mapQueue = new ConcurrentHashMap<>();
-    private final Scheduler schedulerGlobalStatistic;
+    private final Scheduler scheduler;
+    private final ConfigurableApplicationContext applicationContext;
+    private StatisticAggregator statisticAggregator;
 
-    public Broker(Scheduler schedulerGlobalStatistic) {
-        this.schedulerGlobalStatistic = schedulerGlobalStatistic;
-        schedulerGlobalStatistic.add(SchedulerGlobal.SCHEDULER_GLOBAL_STATISTIC_WRITE, this::flushStatistic);
+    public Broker(Scheduler scheduler, ConfigurableApplicationContext applicationContext) {
+        this.scheduler = scheduler;
+        this.applicationContext = applicationContext;
+        scheduler.add(SchedulerGlobal.SCHEDULER_GLOBAL_STATISTIC_WRITE, this::flushStatistic);
     }
 
     @SuppressWarnings({"unchecked"})
@@ -52,7 +55,7 @@ public class Broker extends AbstractCoreComponent {
     @Override
     public void shutdown() {
         super.shutdown();
-        schedulerGlobalStatistic.remove(SchedulerGlobal.SCHEDULER_GLOBAL_STATISTIC_WRITE, this::flushStatistic);
+        scheduler.remove(SchedulerGlobal.SCHEDULER_GLOBAL_STATISTIC_WRITE, this::flushStatistic);
         mapQueue.clear();
     }
 
@@ -65,8 +68,10 @@ public class Broker extends AbstractCoreComponent {
                 BrokerQueue<?> brokerQueue = mapQueue.get(key);
                 brokerStatistic.getList().add(brokerQueue.flushStatistic());
             }
-            StatisticAggregator statistic = App.context.getBean(StatisticAggregator.class);
-            statistic.add(brokerStatistic);
+            if (statisticAggregator == null) {
+                statisticAggregator = applicationContext.getBean(StatisticAggregator.class);
+            }
+            statisticAggregator.add(brokerStatistic);
         }
     }
 
