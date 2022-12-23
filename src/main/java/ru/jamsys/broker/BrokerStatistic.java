@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class BrokerStatistic {
 
-    long timestamp = System.currentTimeMillis();
+    String name = getClass().getSimpleName();
 
     List<BrokerQueueStatistic> list = new ArrayList<>();
 

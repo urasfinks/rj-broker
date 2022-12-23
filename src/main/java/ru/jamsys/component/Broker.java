@@ -27,29 +27,30 @@ public class Broker extends AbstractCoreComponent {
     }
 
     @SuppressWarnings({"unchecked"})
-    private <T> BrokerQueue<T> get(Class<T> c) {
-        if (!mapQueue.containsKey(c)) {
-            mapQueue.put(c, new BrokerQueue<T>());
-        }
+    private <T> BrokerQueue<T> getBrokerQueue(Class<T> c) {
+        mapQueue.putIfAbsent(c, new BrokerQueue<T>());
         return (BrokerQueue<T>) mapQueue.get(c);
     }
 
     @SuppressWarnings("unused")
     public <T> void setLimit(Class<T> c, int limit) {
-        BrokerQueue<T> brokerQueue = get(c);
-        brokerQueue.setLimit(limit);
+        getBrokerQueue(c).setLimit(limit);
     }
 
     @SuppressWarnings("unused")
-    public <T> void addElement(Class<T> c, T o) {
-        BrokerQueue<T> brokerQueue = get(c);
+    public <T> void add(Class<T> c, T o) {
+        BrokerQueue<T> brokerQueue = getBrokerQueue(c);
         brokerQueue.add(o);
     }
 
     @SuppressWarnings("unused")
-    public <T> T getElement(Class<T> c, boolean last) {
-        BrokerQueue<T> tBrokerQueue = get(c);
-        return tBrokerQueue.get(last);
+    public <T> T pollLast(Class<T> c) {
+        return getBrokerQueue(c).pollLast();
+    }
+
+    @SuppressWarnings("unused")
+    public <T> T pollFirst(Class<T> c) {
+        return getBrokerQueue(c).pollFirst();
     }
 
     @Override

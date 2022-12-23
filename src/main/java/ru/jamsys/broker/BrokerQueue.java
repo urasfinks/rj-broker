@@ -23,14 +23,21 @@ public class BrokerQueue<T> {
         }
     }
 
-    public T get(boolean last) {
-        ElementWrap<T> tElementWrap = last ? queue.pollLast() : queue.getFirst();
+    private T stat(ElementWrap<T> tElementWrap) {
         if (tElementWrap != null) {
             tpsOutput.incrementAndGet();
             timeAvg.add(System.currentTimeMillis() - tElementWrap.getTimestamp());
             return tElementWrap.getElement();
         }
         return null;
+    }
+
+    public T pollFirst() {
+        return stat(queue.pollFirst());
+    }
+
+    public T pollLast() {
+        return stat(queue.pollFirst());
     }
 
 

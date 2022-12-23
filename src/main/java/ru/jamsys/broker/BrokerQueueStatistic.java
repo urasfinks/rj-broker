@@ -1,5 +1,8 @@
 package ru.jamsys.broker;
 
+import lombok.Data;
+
+@Data
 public class BrokerQueueStatistic {
 
     String name;
